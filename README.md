@@ -1,6 +1,9 @@
 ## Start with Docker
 `docker compose build && docker compose up`
 
+## Open in browser
+`localhost:80`
+
 ## curl requests
 
 List All
