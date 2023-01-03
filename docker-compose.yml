@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  web:
+    build: http_server
+    platform: linux/amd64 
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_HOSTNAME=sql_server
+    ports:
+      - "80:80"
+    depends_on:
+      - "db"
+  db:
+    build: sql_server
+    hostname: sql_server
+    environment:
+      - POSTGRES_PASSWORD=password
+    ports: 
+      - "5432:5432"
+networks:
+  default:
+    driver: bridge
