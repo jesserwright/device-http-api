@@ -15,8 +15,7 @@ Create
 `curl -v -X POST localhost:80/device -H 'Content-Type: application/json' -d '{"type":"button","version":2,"description":"my desc 123"}'`
 
 Update
-
-`curl -v -X PUT localhost:80/device -H 'Content-Type: application/json' -d '{"id":"1","type":"button","version":2,"description":"hello world"}'`
+curl -v -X PUT localhost:80/device -H 'Content-Type: application/json' -d '{"id":"1","type":"Button VXLT","version":30204,"description":"Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa."}'
 
 Read One
 

@@ -1,7 +1,7 @@
 export type Device = {
   id: string;
   type: string;
-  version: number;
+  version: string;
   description: string;
 };
 
@@ -9,20 +9,29 @@ export function verifyDeviceInput(
   device: Device,
 ): Device | null {
   if (
-    !((device?.type != undefined) &&
-      (device?.version != undefined) &&
-      (device?.description != undefined))
+    device.type === undefined || device.version === undefined ||
+    device.description === undefined
   ) {
     return null;
   }
-  if (device.type.length > 8) {
+
+  if (device.type.length > 16 || device.type.length < 1) {
     return null;
   }
-  if (typeof device.version !== "number") {
+
+  const parsedInt = parseInt(device.version);
+  if (typeof parsedInt !== "number") {
     return null;
   }
-  if (device.description.length > 110) {
+  if (parsedInt) {
+    if (parsedInt < 0) {
+      return null;
+    }
+  }
+
+  if (device.description.length > 110 || device.description.length < 1) {
     return null;
   }
+
   return device;
 }

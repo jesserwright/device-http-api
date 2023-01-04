@@ -1,6 +1,8 @@
 import { h, render } from "./preact.js";
 import { useEffect, useState } from "./hooks.js";
 
+const BUTTON_STYLE = "text-blue-600  ml-3 underline text-right";
+
 function useDevices(request) {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -9,88 +11,296 @@ function useDevices(request) {
   useEffect(() => {
     (async () => {
       try {
+        setErrorMsg(null);
         setLoading(true);
         const response = await fetch(request);
-        const devicesResp = await response.json();
+
+        if (!response.ok) {
+          setLoading(false)
+          setErrorMsg(response.statusText);
+          return;
+        }
+        // Only collect response in case of GET on /device
+        if (request.method === "GET") {
+          const devicesResp = await response.json();
+          setDevices(devicesResp);
+        } else {
+          // Consume response
+          const _idReponse = await response.json();
+          // *Always* reload when something changed...
+          const refreshReq = new Request('/device')
+          const refreshReponse = await fetch(refreshReq);
+          const refreshedDevices = await refreshReponse.json();
+          setDevices(refreshedDevices);
+        }
         setLoading(false);
-        setDevices(devicesResp);
       } catch (error) {
-        // if (instanceof error is NetworkError ..) { network error... } ...
+        setLoading(false);
         setErrorMsg(error.message);
       }
     })();
-  }, []);
+  }, [request]);
 
   return [loading, errorMsg, devices];
 }
 
-function App({ request }) {
+function App() {
+  const [request, setRequest] = useState(new Request("/device"));
   const [loading, errorMsg, devices] = useDevices(request);
 
+  // null | 'New Device' | 'Edit Device' ... this is not ideal
+  const [editorMode, setEditorMode] = useState(null);
+
+  // State for editing *and* creating. Can be used for both but must be be set and cleared carefully (!). Starts with default values for the create state.
+  const [type, setType] = useState("");
+  const [version, setVersion] = useState(0);
+  const [description, setDescription] = useState("");
+  const [id, setId] = useState(null)
+
+  function setDeviceInputsToDefaultEmpty() {
+    setType("");
+    setVersion(0);
+    setDescription("");
+    setId(null);
+  }
+
+  const systemMsgStyle = "mt-3 text-lg text-gray-500 text-center";
+
   if (loading) {
-    return h("h1", { className: "text-red text-center" }, "LOADING");
+    return h("h1", {
+      className: systemMsgStyle,
+    }, "Loading");
   }
 
   if (errorMsg) {
-    return h("h1", { className: "text-red text-center" }, errorMsg);
+    return h(
+      "button",
+      {
+        className: systemMsgStyle, onClick: () => {
+          setRequest(new Request('/device'));
+        }
+      }, `${errorMsg}. Click to reset.`
+    );
+  }
+
+  if (editorMode) {
+    return [
+      h(Header, {
+        title: editorMode,
+        buttons: [
+          h("button", {
+            className: BUTTON_STYLE,
+            onClick: () => {
+              setEditorMode(null)
+              setDeviceInputsToDefaultEmpty()
+            },
+          }, "Back"),
+          h(
+            "button",
+            {
+              className: BUTTON_STYLE,
+              onClick: () => {
+                // Create
+                if (editorMode == "New Device") {
+                  setRequest(
+                    new Request("/device", {
+                      method: "POST",
+                      body: JSON.stringify({ type, version, description }),
+                    }),
+                  );
+                }
+                // Update
+                if (editorMode == "Edit Device") {
+                  setRequest(
+                    new Request("/device", {
+                      method: "PUT",
+                      body: JSON.stringify({ id, type, version, description }),
+                    }),
+                  );
+                }
+                setEditorMode(null);
+                setDeviceInputsToDefaultEmpty()
+              },
+            },
+            editorMode === "New Device" ? "Create" : "Save",
+          ),
+          editorMode === "Edit Device" && h("button", {
+            className: "ml-3 text-right underline text-red-600",
+            onClick: () => {
+              // Delete
+              setRequest(
+                new Request("/device", {
+                  method: "DELETE",
+                  body: JSON.stringify({ id }),
+                }),
+              );
+              setDeviceInputsToDefaultEmpty()
+              setEditorMode(null);
+            },
+          }, "Delete"),
+        ],
+      }),
+      h(EditableDevice, {
+        device: { id, type, version, description },
+        setType,
+        setVersion,
+        setDescription,
+      }),
+    ];
   }
 
   return [
-    h("h1", { className: "text-lg my-4 font-bold" }, "DEVICES"),
-    h(DeviceList, { devices }),
-    h(DeviceItem, { device: null }),
-    h("footer", { className: "m-4" }),
+    h(Header, {
+      title: "Devices",
+      buttons: [
+        h("button", {
+          className: BUTTON_STYLE,
+          onClick: () => setEditorMode("New Device"),
+        }, "New"),
+      ],
+    }),
+    h(DeviceList, {
+      devices,
+      setId,
+      setEditorMode,
+      setType,
+      setVersion,
+      setDescription,
+    }),
   ];
 }
 
-function DeviceList({ devices }) {
-  return devices.map((device) => h(DeviceItem, { device }));
+function Header({ title, buttons }) {
+  return h("div", {
+    className: "flex justify-between border-b border-gray-900 mb-3 pb-1",
+  }, [
+    h(
+      "h1",
+      { className: "text-lg font-medium" },
+      title,
+    ),
+    h("div", { className: "" }, buttons),
+  ]);
 }
 
-function DeviceItem({ device }) {
-  const [type, _setType] = useState(device?.type);
-  const [version, _setVersion] = useState(device?.version);
-  const [description, _setDescription] = useState(device?.description);
-
-  const className =
-    "py-1 px-2 mt-0.5 flex w-60 flex-col border focus:border-blue-700 rounded";
-
-  return h(
-    "div",
-    { className: "px-3 pt-2 pb-3 border mb-4 bg-white rounded" },
-    [
-      h("div", { className: "mb-2 block" }, [
-        h("span", { className: "text-sm text-gray-500" }, "Type"),
-        h("input", { className, type: "text", value: type }),
-      ]),
-      h("div", { className: "mb-2 block" }, [
-        h("span", { className: "text-sm text-gray-500" }, "Version"),
-        h("input", { className, type: "number", value: version }),
-      ]),
-      h("div", { className: "mb-3 block" }, [
-        h("span", { className: "text-sm text-gray-500" }, "Description"),
-        h("input", { className, type: "text", value: description }),
-      ]),
-      device === null
-        ? h("button", {
-          className:
-            "py-1 w-full text-sm font-medium border rounded text-blue-700 cursor-not-allowed",
-        }, "CREATE")
-        : h("div", { className: "flex flex-row justify-between" }, [
-          h("button", {
-            className:
-              "grow py-1 mr-1 border font-medium text-sm rounded text-amber-700 cursor-not-allowed",
-          }, "UPDATE"),
-          h("button", {
-            onClick: () => deleteDevice(device.id),
-            className:
-              "grow py-1 ml-1 border font-medium text-sm rounded text-rose-800 cursor-not-allowed",
-          }, "DELETE"),
-        ]),
-    ],
+function DeviceList(
+  { devices, setId, setEditorMode, setType, setVersion, setDescription },
+) {
+  return devices.map((device) =>
+    h(DisplayDevice, {
+      ...device,
+      setEditorMode,
+      setId,
+      setType,
+      setVersion,
+      setDescription,
+    })
   );
 }
 
-const INIT = new Request("/device");
+function DisplayDevice({ id, type, version, description, setEditorMode, setId, setType, setVersion, setDescription }) {
+  return h("div", {
+    className: "flex flex-col bg-white border py-1 px-2 relative mb-3",
+  }, [
+    h("code", {
+      className:
+        "border-b border-l text-sm py-0.5 px-1.5 absolute top-0 right-0",
+    }, version),
+    h("h2", {}, type),
+    h("p", { className: "text-sm text-gray-600 py-1" }, description),
+    h(
+      "button",
+      {
+        onClick: () => {
+          setId(id);
+          setType(type);
+          setVersion(version);
+          setDescription(description);
+          setEditorMode("Edit Device");
+        }, className: `${BUTTON_STYLE} self-end`
+      },
+      "Edit",
+    ),
+  ]);
+}
 
-render(h(App, { request: INIT }), document.getElementById("root"));
+function EditableDevice({ device, setType, setVersion, setDescription }) {
+  const { type, version, description } = device;
+
+  const fieldProps = [
+    {
+      name: "Type",
+      nullable: false,
+      type: "UTF-8",
+      constraint: "Length 1-8",
+      inputProps: {
+        element: "input",
+        type: "text",
+        value: type,
+        onChange: (e) => {
+          e.preventDefault();
+          setType(e.target.value);
+        },
+      },
+    },
+    {
+      name: "Version",
+      nullable: false,
+      type: "Integer",
+      constraint: "Value 0-2147483647",
+      inputProps: {
+        element: "input",
+        type: "number",
+        value: version,
+        min: 0,
+        onChange: (e) => {
+          e.preventDefault();
+          setVersion(e.target.value);
+        },
+      },
+    },
+    {
+      name: "Description",
+      nullable: false,
+      type: "UTF-8",
+      constraint: "Length 1-110",
+      inputProps: {
+        element: "textarea",
+        value: description,
+        onChange: (e) => {
+          e.preventDefault();
+          setDescription(e.target.value);
+        },
+      },
+    },
+  ];
+
+  // In DOM order
+  const editableDeviceContainer = "px-3 pt-2 bg-white border";
+  const fieldContainer = "mb-2.5 flex flex-col";
+  const aboveInputContainer = "flex justify-between";
+  const fieldNameStyle = "text-sm";
+  const fieldTypeStyle = "text-xs text-gray-500";
+  const inputStyle = "py-1 px-2 my-1 flex flex-col border max-h-32";
+
+  return h("div", { className: editableDeviceContainer }, [
+    fieldProps.map((field) =>
+      h("div", { className: fieldContainer }, [
+        h("div", { className: aboveInputContainer }, [
+          h("div", { className: fieldNameStyle }, field.name),
+          h(
+            "div",
+            { className: fieldTypeStyle },
+            `${field.nullable ? "" : "Required ·"} ${field.type}`,
+          ),
+        ]),
+        h(field.inputProps.element, {
+          className: inputStyle,
+          ...field.inputProps,
+        }),
+      ])
+    ),
+  ]);
+}
+
+render(h(App, {}), document.getElementById("root"));
