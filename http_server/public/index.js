@@ -1,5 +1,5 @@
-import { h, render } from "./preact.js";
-import { useEffect, useState } from "./hooks.js";
+import { createElement as h, useEffect, useState } from "./react.js";
+import ReactDOM from "./react-dom.js";
 
 const BUTTON_STYLE = "text-blue-600  ml-3 underline text-right";
 
@@ -16,7 +16,7 @@ function useDevices(request) {
         const response = await fetch(request);
 
         if (!response.ok) {
-          setLoading(false)
+          setLoading(false);
           setErrorMsg(response.statusText);
           return;
         }
@@ -28,7 +28,7 @@ function useDevices(request) {
           // Consume response
           const _idReponse = await response.json();
           // *Always* reload when something changed...
-          const refreshReq = new Request('/device')
+          const refreshReq = new Request("/device");
           const refreshReponse = await fetch(refreshReq);
           const refreshedDevices = await refreshReponse.json();
           setDevices(refreshedDevices);
@@ -55,7 +55,7 @@ function App() {
   const [type, setType] = useState("");
   const [version, setVersion] = useState(0);
   const [description, setDescription] = useState("");
-  const [id, setId] = useState(null)
+  const [id, setId] = useState(null);
 
   function setDeviceInputsToDefaultEmpty() {
     setType("");
@@ -76,10 +76,12 @@ function App() {
     return h(
       "button",
       {
-        className: systemMsgStyle, onClick: () => {
-          setRequest(new Request('/device'));
-        }
-      }, `${errorMsg}. Click to reset.`
+        className: systemMsgStyle,
+        onClick: () => {
+          setRequest(new Request("/device"));
+        },
+      },
+      `${errorMsg}. Click to reset.`,
     );
   }
 
@@ -91,8 +93,8 @@ function App() {
           h("button", {
             className: BUTTON_STYLE,
             onClick: () => {
-              setEditorMode(null)
-              setDeviceInputsToDefaultEmpty()
+              setEditorMode(null);
+              setDeviceInputsToDefaultEmpty();
             },
           }, "Back"),
           h(
@@ -119,7 +121,7 @@ function App() {
                   );
                 }
                 setEditorMode(null);
-                setDeviceInputsToDefaultEmpty()
+                setDeviceInputsToDefaultEmpty();
               },
             },
             editorMode === "New Device" ? "Create" : "Save",
@@ -134,7 +136,7 @@ function App() {
                   body: JSON.stringify({ id }),
                 }),
               );
-              setDeviceInputsToDefaultEmpty()
+              setDeviceInputsToDefaultEmpty();
               setEditorMode(null);
             },
           }, "Delete"),
@@ -198,7 +200,19 @@ function DeviceList(
   );
 }
 
-function DisplayDevice({ id, type, version, description, setEditorMode, setId, setType, setVersion, setDescription }) {
+function DisplayDevice(
+  {
+    id,
+    type,
+    version,
+    description,
+    setEditorMode,
+    setId,
+    setType,
+    setVersion,
+    setDescription,
+  },
+) {
   return h("div", {
     className: "flex flex-col bg-white border py-1 px-2 relative mb-3",
   }, [
@@ -217,7 +231,8 @@ function DisplayDevice({ id, type, version, description, setEditorMode, setId, s
           setVersion(version);
           setDescription(description);
           setEditorMode("Edit Device");
-        }, className: `${BUTTON_STYLE} self-end`
+        },
+        className: `${BUTTON_STYLE} self-end`,
       },
       "Edit",
     ),
@@ -239,6 +254,7 @@ function EditableDevice({ device, setType, setVersion, setDescription }) {
         value: type,
         onChange: (e) => {
           e.preventDefault();
+          // TODO: verify field input
           setType(e.target.value);
         },
       },
@@ -255,6 +271,7 @@ function EditableDevice({ device, setType, setVersion, setDescription }) {
         min: 0,
         onChange: (e) => {
           e.preventDefault();
+          // TODO: verify field input
           setVersion(e.target.value);
         },
       },
@@ -269,6 +286,7 @@ function EditableDevice({ device, setType, setVersion, setDescription }) {
         value: description,
         onChange: (e) => {
           e.preventDefault();
+          // TODO: verify field input
           setDescription(e.target.value);
         },
       },
@@ -303,4 +321,6 @@ function EditableDevice({ device, setType, setVersion, setDescription }) {
   ]);
 }
 
-render(h(App, {}), document.getElementById("root"));
+const rootNode = document.getElementById("root");
+const root = ReactDOM.createRoot(rootNode);
+root.render(h(App));
