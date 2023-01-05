@@ -1,9 +1,9 @@
 import { createElement as h, useEffect, useState } from "./react.js";
 import ReactDOM from "./react-dom.js";
 
-const BUTTON_STYLE = "text-blue-600  ml-3 underline text-right";
+const BUTTON_STYLE = "text-blue-600 ml-3 underline text-right";
 
-function useDevices(request) {
+function useRequest(request) {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [devices, setDevices] = useState([]);
@@ -20,14 +20,13 @@ function useDevices(request) {
           setErrorMsg(response.statusText);
           return;
         }
-        // Only collect response in case of GET on /device
+
         if (request.method === "GET") {
           const devicesResp = await response.json();
           setDevices(devicesResp);
         } else {
-          // Consume response
-          const _idReponse = await response.json();
-          // *Always* reload when something changed...
+          const _idResponse = await response.json();
+          // Always reload when something changed
           const refreshReq = new Request("/device");
           const refreshReponse = await fetch(refreshReq);
           const refreshedDevices = await refreshReponse.json();
@@ -46,12 +45,14 @@ function useDevices(request) {
 
 function App() {
   const [request, setRequest] = useState(new Request("/device"));
-  const [loading, errorMsg, devices] = useDevices(request);
+  const [loading, errorMsg, devices] = useRequest(request);
 
   // null | 'New Device' | 'Edit Device' ... this is not ideal
   const [editorMode, setEditorMode] = useState(null);
 
-  // State for editing *and* creating. Can be used for both but must be be set and cleared carefully (!). Starts with default values for the create state.
+  // State for editing *and* creating.
+  // Can be used for both but must be be set and cleared carefully (!).
+  // Starts with default values for the create state.
   const [type, setType] = useState("");
   const [version, setVersion] = useState(0);
   const [description, setDescription] = useState("");
