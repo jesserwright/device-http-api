@@ -4,7 +4,7 @@
 ## Open in browser
 [http://localhost:80](http://localhost:80) (assuming default Docker configuration)
 
-## Test with `curl` requests
+## Test with `curl`
 
 Create
 
@@ -24,11 +24,15 @@ curl -v -X PUT localhost:80/device \
 
 Read One
 
-`curl -v -X GET "localhost:80/device?id=1"`
+```
+curl -v -X GET "localhost:80/device?id=1"
+```
 
 Read All
 
-`curl -v -X GET localhost:80/device`
+```
+curl -v -X GET localhost:80/device
+```
 
 
 Delete
