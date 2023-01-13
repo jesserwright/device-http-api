@@ -1,5 +1,7 @@
 ## Start with Docker
-`docker compose build && docker compose up`
+```
+docker compose build && docker compose up
+```
 
 ## Open in browser
 [http://localhost:80](http://localhost:80) (assuming default Docker configuration)
