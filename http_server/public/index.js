@@ -1,7 +1,7 @@
 import { createElement as h, useEffect, useState } from "./react.js";
 import ReactDOM from "./react-dom.js";
 
-const BUTTON_STYLE = "text-blue-600 ml-3 underline text-right";
+const BUTTON_STYLE = "text-blue-600 ml-3 hover:underline text-right";
 
 function useRequest(request) {
   const [loading, setLoading] = useState(false);
@@ -128,7 +128,7 @@ function App() {
             editorMode === "New Device" ? "Create" : "Save",
           ),
           editorMode === "Edit Device" && h("button", {
-            className: "ml-3 text-right underline text-red-600",
+            className: "ml-3 text-right hover:underline text-red-600",
             onClick: () => {
               // Delete
               setRequest(
