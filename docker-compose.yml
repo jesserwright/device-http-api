@@ -1,18 +1,18 @@
 version: "3.9"
 services:
   web:
-    build: http_server
+    build: http
     platform: linux/amd64 
     environment:
       - POSTGRES_PASSWORD=password
-      - POSTGRES_HOSTNAME=sql_server
+      - POSTGRES_HOSTNAME=database
     ports:
       - "80:80"
     depends_on:
       - "db"
   db:
-    build: sql_server
-    hostname: sql_server
+    build: database
+    hostname: database
     environment:
       - POSTGRES_PASSWORD=password
     ports: 

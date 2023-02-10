@@ -1,23 +1,22 @@
 import { postgresjs, serve, serveDir, Status } from "./deps.ts";
 import { Device, verifyDeviceInput } from "./util.ts";
 
-// `postgresjs` adds prepared statements via tagged templates
-const PASS = Deno.env.get("POSTGRES_PASSWORD");
-const HOST = Deno.env.get("POSTGRES_HOSTNAME");
-const PSQL_CON_STR = `postgresql://postgres:${PASS}@${HOST}:5432/postgres`;
+const PASSWORD = Deno.env.get("POSTGRES_PASSWORD");
+const HOSTNAME = Deno.env.get("POSTGRES_HOSTNAME");
+const PSQL_CON_STR = `postgresql://postgres:${PASSWORD}@${HOSTNAME}:5432/postgres`;
 const sql = postgresjs(PSQL_CON_STR);
 
 const STATIC_FILE_PATTERN = new URLPattern({
   pathname: "/*.:filetype(js|html)",
 });
 
-// Handle Top Level Routes
 async function handler(request: Request): Promise<Response> {
   const { pathname } = new URL(request.url);
 
   if (STATIC_FILE_PATTERN.test(request.url) || pathname === "/") {
     return serveDir(request, { fsRoot: "public" });
   }
+
   if (pathname === "/device") {
     return await handleDevice(request);
   }
@@ -25,7 +24,6 @@ async function handler(request: Request): Promise<Response> {
   return new Response(null, { status: Status.NotFound });
 }
 
-// Device Routes
 async function handleDevice(request: Request): Promise<Response> {
   const method = request.method;
   const { searchParams } = new URL(request.url);
@@ -97,5 +95,4 @@ async function handleDevice(request: Request): Promise<Response> {
   return new Response(null, { status: Status.NotFound });
 }
 
-// Server Run Loop
 await serve(handler, { port: 80 });

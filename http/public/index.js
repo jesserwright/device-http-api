@@ -10,23 +10,21 @@ function useRequest(request) {
 
   useEffect(() => {
     (async () => {
+      const method = request.method;
+      setErrorMsg(null);
+      setLoading(true);
       try {
-        setErrorMsg(null);
-        setLoading(true);
         const response = await fetch(request);
-
         if (!response.ok) {
           setLoading(false);
           setErrorMsg(response.statusText);
           return;
         }
-
-        if (request.method === "GET") {
+        if (method === "GET") {
           const devicesResp = await response.json();
           setDevices(devicesResp);
         } else {
           const _idResponse = await response.json();
-          // Always reload when something changed
           const refreshReq = new Request("/device");
           const refreshReponse = await fetch(refreshReq);
           const refreshedDevices = await refreshReponse.json();
@@ -37,6 +35,7 @@ function useRequest(request) {
         setLoading(false);
         setErrorMsg(error.message);
       }
+
     })();
   }, [request]);
 
@@ -50,9 +49,10 @@ function App() {
   // null | 'New Device' | 'Edit Device' ... this is not ideal
   const [editorMode, setEditorMode] = useState(null);
 
-  // State for editing *and* creating.
+  // State for editing and creating.
   // Can be used for both but must be be set and cleared carefully (!).
   // Starts with default values for the create state.
+
   const [type, setType] = useState("");
   const [version, setVersion] = useState(0);
   const [description, setDescription] = useState("");
@@ -174,8 +174,9 @@ function App() {
 }
 
 function Header({ title, buttons }) {
+  const headerContainer = "flex justify-between border-b border-gray-900 mb-3 pb-1"
   return h("div", {
-    className: "flex justify-between border-b border-gray-900 mb-3 pb-1",
+    className: headerContainer,
   }, [
     h(
       "h1",
@@ -201,6 +202,7 @@ function DeviceList(
   );
 }
 
+
 function DisplayDevice(
   {
     id,
@@ -214,15 +216,19 @@ function DisplayDevice(
     setDescription,
   },
 ) {
+
+  const deviceContainer = "flex flex-col bg-white border py-1 px-2 relative mb-3"
+  const deviceIdStyle = "border-b border-l text-sm py-0.5 px-1.5 absolute top-0 right-0"
+  const descriptionStyle = "text-sm text-gray-600 py-1"
+
   return h("div", {
-    className: "flex flex-col bg-white border py-1 px-2 relative mb-3",
+    className: deviceContainer
   }, [
     h("code", {
-      className:
-        "border-b border-l text-sm py-0.5 px-1.5 absolute top-0 right-0",
+      className: deviceIdStyle,
     }, version),
     h("h2", {}, type),
-    h("p", { className: "text-sm text-gray-600 py-1" }, description),
+    h("p", { className: descriptionStyle }, description),
     h(
       "button",
       {
@@ -255,7 +261,6 @@ function EditableDevice({ device, setType, setVersion, setDescription }) {
         value: type,
         onChange: (e) => {
           e.preventDefault();
-          // TODO: verify field input
           setType(e.target.value);
         },
       },
@@ -272,7 +277,6 @@ function EditableDevice({ device, setType, setVersion, setDescription }) {
         min: 0,
         onChange: (e) => {
           e.preventDefault();
-          // TODO: verify field input
           setVersion(e.target.value);
         },
       },
@@ -287,14 +291,12 @@ function EditableDevice({ device, setType, setVersion, setDescription }) {
         value: description,
         onChange: (e) => {
           e.preventDefault();
-          // TODO: verify field input
           setDescription(e.target.value);
         },
       },
     },
   ];
 
-  // In DOM order
   const editableDeviceContainer = "px-3 pt-2 bg-white border";
   const fieldContainer = "mb-2.5 flex flex-col";
   const aboveInputContainer = "flex justify-between";
