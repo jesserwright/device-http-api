@@ -1,6 +1,5 @@
-FROM denoland/deno:1.30.3
+FROM denoland/deno:latest
 
-EXPOSE 80
 USER deno
 
 COPY deps.ts .
@@ -12,3 +11,4 @@ RUN deno cache main.ts
 COPY public/ public/
 
 CMD ["run", "--allow-net", "--allow-env", "--allow-read", "main.ts"]
+EXPOSE 80

@@ -3,6 +3,21 @@ import ReactDOM from "./react-dom.js";
 
 const BUTTON_STYLE = "text-blue-600 ml-3 hover:underline text-right";
 
+// "discard progress?"
+// underline
+// left pane
+// footer
+// top navigation
+// network errors / timeout debounce
+// status of input length like twitter input
+// file inputs (max size, extension, parsing for validation(!))
+// Select a pre-defined value
+// Fetch new info when available / resolve edit over-write conflicts
+// if client files change, re-run css generation
+// TS on client side (that's hard b/c of vendoring rn)
+// dev cycles
+// prod cycles
+
 function useRequest(request) {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -35,7 +50,6 @@ function useRequest(request) {
         setLoading(false);
         setErrorMsg(error.message);
       }
-
     })();
   }, [request]);
 
@@ -68,9 +82,7 @@ function App() {
   const systemMsgStyle = "mt-3 text-lg text-gray-500 text-center";
 
   if (loading) {
-    return h("h1", {
-      className: systemMsgStyle,
-    }, "Loading");
+    return h("h1", { className: systemMsgStyle }, "Loading");
   }
 
   if (errorMsg) {
@@ -174,7 +186,8 @@ function App() {
 }
 
 function Header({ title, buttons }) {
-  const headerContainer = "flex justify-between border-b border-gray-900 mb-3 pb-1"
+  const headerContainer =
+    "flex justify-between border-b border-gray-900 mb-3 pb-1";
   return h("div", {
     className: headerContainer,
   }, [
@@ -202,7 +215,6 @@ function DeviceList(
   );
 }
 
-
 function DisplayDevice(
   {
     id,
@@ -216,13 +228,14 @@ function DisplayDevice(
     setDescription,
   },
 ) {
-
-  const deviceContainer = "flex flex-col bg-white border py-1 px-2 relative mb-3"
-  const deviceIdStyle = "border-b border-l text-sm py-0.5 px-1.5 absolute top-0 right-0"
-  const descriptionStyle = "text-sm text-gray-600 py-1"
+  const deviceContainer =
+    "flex flex-col bg-white border py-1 px-2 relative mb-3";
+  const deviceIdStyle =
+    "border-b border-l text-sm py-0.5 px-1.5 absolute top-0 right-0";
+  const descriptionStyle = "text-sm text-gray-600 py-1";
 
   return h("div", {
-    className: deviceContainer
+    className: deviceContainer,
   }, [
     h("code", {
       className: deviceIdStyle,

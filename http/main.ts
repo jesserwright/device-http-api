@@ -31,7 +31,7 @@ async function handleDevice(request: Request): Promise<Response> {
   if (method === "GET") {
     const id = searchParams.get("id");
     const devices = await sql<Device[]>`
-      SELECT id, type, version, description FROM device
+SELECT id, type, version, description FROM device
       ${id ? sql`WHERE id = ${id}` : sql``}`;
     if (id && devices.length < 1) {
       return new Response(null, { status: Status.NotFound });
@@ -46,9 +46,9 @@ async function handleDevice(request: Request): Promise<Response> {
     }
     const { type, version, description } = input;
     const newDevice = await sql<{ id: string }[]>`
-      INSERT INTO device ("type", "version", "description")
-      VALUES ${sql([type, version, description])}
-      RETURNING id`;
+INSERT INTO device ("type", "version", "description")
+VALUES ${sql([type, version, description])}
+RETURNING id`;
     if (newDevice.length > 0) {
       return new Response(JSON.stringify(newDevice[0]), {
         status: Status.Created,
@@ -63,10 +63,10 @@ async function handleDevice(request: Request): Promise<Response> {
     }
     const updateSql = sql(input, "type", "version", "description");
     const updatedDevice = await sql<{ id: string }[]>`
-      UPDATE device
-      SET ${updateSql}
-      WHERE id = ${input.id}
-      RETURNING id`;
+UPDATE device
+SET ${updateSql}
+WHERE id = ${input.id}
+RETURNING id`;
     if (updatedDevice.length > 0) {
       const device = updatedDevice[0];
       if (device?.id !== null) {
@@ -81,9 +81,9 @@ async function handleDevice(request: Request): Promise<Response> {
       return new Response(null, { status: Status.UnprocessableEntity });
     }
     const deletedDevice = await sql<{ id: string }[]>`
-      DELETE FROM device
-      WHERE id = ${id.id}
-      RETURNING id`;
+DELETE FROM device
+WHERE id = ${id.id}
+RETURNING id`;
     if (deletedDevice.length > 0) {
       const device = deletedDevice[0];
       if (device?.id !== null) {

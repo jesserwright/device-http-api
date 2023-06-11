@@ -1,8 +1,15 @@
-version: "3.9"
 services:
+  #  dev:
+  #    build:
+  #      context: .
+  #      dockerfile: Dockerfile
+  #    hostname: dev
+  #    volumes:
+  #      - .:/repo
   web:
     build: http
-    platform: linux/amd64 
+    hostname: web
+    platform: linux/amd64
     environment:
       - POSTGRES_PASSWORD=password
       - POSTGRES_HOSTNAME=database
@@ -15,7 +22,7 @@ services:
     hostname: database
     environment:
       - POSTGRES_PASSWORD=password
-    ports: 
+    ports:
       - "5432:5432"
 networks:
   default:
